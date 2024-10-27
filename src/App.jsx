@@ -24,6 +24,9 @@ function App() {
 
   const [copyCorrectedSuccess, setCopyCorrectedSuccess] = createSignal(false);
   const [copyDiacritizedSuccess, setCopyDiacritizedSuccess] = createSignal(false);
+
+  const [currentSection, setCurrentSection] = createSignal('');
+
   let audioRef;
   let correctedAudioRef;
   let diacritizedAudioRef;
@@ -37,6 +40,7 @@ function App() {
         response_type: 'text',
       });
       setCorrectedText(correctionResult.trim());
+      setCurrentSection('corrected');
     } catch (error) {
       console.error('Error correcting text:', error);
     } finally {
@@ -54,6 +58,7 @@ function App() {
         response_type: 'text',
       });
       setDiacritizedText(result.trim());
+      setCurrentSection('diacritized');
     } catch (error) {
       console.error('Error adding diacritics:', error);
     } finally {
@@ -72,6 +77,7 @@ function App() {
       });
       setAudioUrl(result);
       setShowReplayButton(false);
+      setCurrentSection('audio');
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -283,49 +289,51 @@ function App() {
       <div class="max-w-3xl mx-auto h-full">
         <h1 class="text-4xl font-bold text-purple-600 mb-8 text-center">تحويل النص إلى كلام</h1>
 
-        <div class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
-          <textarea
-            placeholder="أدخل النص هنا..."
-            value={inputText()}
-            onInput={(e) => setInputText(e.target.value)}
-            class="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent box-border text-right flex-grow"
-          ></textarea>
+        <Show when={currentSection() === ''}>
+          <div class="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
+            <textarea
+              placeholder="أدخل النص هنا..."
+              value={inputText()}
+              onInput={(e) => setInputText(e.target.value)}
+              class="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent box-border text-right flex-grow"
+            ></textarea>
 
-          <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
-            <button
-              onClick={handleTextToSpeech}
-              class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
-                loading() ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={loading()}
-            >
-              {loading() ? 'جاري التحويل...' : 'تحويل النص إلى كلام'}
-            </button>
+            <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+              <button
+                onClick={handleTextToSpeech}
+                class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
+                  loading() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={loading()}
+              >
+                {loading() ? 'جاري التحويل...' : 'تحويل النص إلى كلام'}
+              </button>
 
-            <button
-              onClick={handleAddDiacritics}
-              class={`w-full px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
-                diacriticsLoading() ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={diacriticsLoading()}
-            >
-              {diacriticsLoading() ? 'جاري التشكيل...' : 'تشكيل النص'}
-            </button>
+              <button
+                onClick={handleAddDiacritics}
+                class={`w-full px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
+                  diacriticsLoading() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={diacriticsLoading()}
+              >
+                {diacriticsLoading() ? 'جاري التشكيل...' : 'تشكيل النص'}
+              </button>
 
-            <button
-              onClick={handleTextCorrection}
-              class={`w-full px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
-                correctionLoading() ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={correctionLoading()}
-            >
-              {correctionLoading() ? 'جاري التصحيح...' : 'تصحيح النص'}
-            </button>
+              <button
+                onClick={handleTextCorrection}
+                class={`w-full px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
+                  correctionLoading() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={correctionLoading()}
+              >
+                {correctionLoading() ? 'جاري التصحيح...' : 'تصحيح النص'}
+              </button>
+            </div>
           </div>
-        </div>
+        </Show>
 
         {/* Corrected Text Section */}
-        <Show when={correctedText()}>
+        <Show when={currentSection() === 'corrected'}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص بعد التصحيح</h3>
             <div class="bg-gray-100 p-4 rounded-lg text-right">
@@ -347,7 +355,6 @@ function App() {
               >
                 تحميل النص المصحح بصيغة TXT
               </button>
-              {/* New Listen Button for Corrected Text */}
               <button
                 onClick={handleTextToSpeechForCorrectedText}
                 class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
@@ -358,52 +365,22 @@ function App() {
                 {correctedAudioLoading() ? 'جاري تحويل النص المصحح...' : 'استماع للنص المصحح'}
               </button>
             </div>
-            {/* Audio Player for Corrected Text */}
-            <Show when={correctedAudioUrl()}>
-              <div class="mt-4">
-                <audio
-                  ref={correctedAudioRef}
-                  src={correctedAudioUrl()}
-                  class="w-full"
-                  onPlay={() => setIsCorrectedAudioPlaying(true)}
-                  onPause={() => setIsCorrectedAudioPlaying(false)}
-                  onEnded={handleCorrectedAudioEnded}
-                />
-                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
-                  <Show when={!showCorrectedReplayButton()}>
-                    <button
-                      onClick={togglePlayPauseCorrected}
-                      class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                    >
-                      {isCorrectedAudioPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
-                    </button>
-                  </Show>
-                  <Show when={showCorrectedReplayButton()}>
-                    <button
-                      onClick={() => {
-                        correctedAudioRef.currentTime = 0;
-                        correctedAudioRef.play();
-                        setShowCorrectedReplayButton(false);
-                      }}
-                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                    >
-                      إعادة الاستماع
-                    </button>
-                  </Show>
-                  <button
-                    onClick={handleDownloadCorrectedAudio}
-                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                  >
-                    تحميل الصوت المصحح بصيغة MP3
-                  </button>
-                </div>
-              </div>
-            </Show>
+            <div class="flex justify-center mt-4">
+              <button
+                onClick={() => {
+                  setCurrentSection('');
+                  setCorrectedText('');
+                }}
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
+              >
+                العودة
+              </button>
+            </div>
           </div>
         </Show>
 
         {/* Diacritized Text Section */}
-        <Show when={diacritizedText()}>
+        <Show when={currentSection() === 'diacritized'}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص بعد التشكيل</h3>
             <div class="bg-gray-100 p-4 rounded-lg text-right">
@@ -425,7 +402,6 @@ function App() {
               >
                 تحميل النص المشكَّل بصيغة TXT
               </button>
-              {/* New Listen Button for Diacritized Text */}
               <button
                 onClick={handleTextToSpeechForDiacritizedText}
                 class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
@@ -436,52 +412,22 @@ function App() {
                 {diacritizedAudioLoading() ? 'جاري تحويل النص المشكَّل...' : 'استماع للنص المشكَّل'}
               </button>
             </div>
-            {/* Audio Player for Diacritized Text */}
-            <Show when={diacritizedAudioUrl()}>
-              <div class="mt-4">
-                <audio
-                  ref={diacritizedAudioRef}
-                  src={diacritizedAudioUrl()}
-                  class="w-full"
-                  onPlay={() => setIsDiacritizedAudioPlaying(true)}
-                  onPause={() => setIsDiacritizedAudioPlaying(false)}
-                  onEnded={handleDiacritizedAudioEnded}
-                />
-                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
-                  <Show when={!showDiacritizedReplayButton()}>
-                    <button
-                      onClick={togglePlayPauseDiacritized}
-                      class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                    >
-                      {isDiacritizedAudioPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
-                    </button>
-                  </Show>
-                  <Show when={showDiacritizedReplayButton()}>
-                    <button
-                      onClick={() => {
-                        diacritizedAudioRef.currentTime = 0;
-                        diacritizedAudioRef.play();
-                        setShowDiacritizedReplayButton(false);
-                      }}
-                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                    >
-                      إعادة الاستماع
-                    </button>
-                  </Show>
-                  <button
-                    onClick={handleDownloadDiacritizedAudio}
-                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                  >
-                    تحميل الصوت المشكَّل بصيغة MP3
-                  </button>
-                </div>
-              </div>
-            </Show>
+            <div class="flex justify-center mt-4">
+              <button
+                onClick={() => {
+                  setCurrentSection('');
+                  setDiacritizedText('');
+                }}
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
+              >
+                العودة
+              </button>
+            </div>
           </div>
         </Show>
 
         {/* Original Audio Section */}
-        <Show when={audioUrl()}>
+        <Show when={currentSection() === 'audio'}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
             <audio
@@ -518,6 +464,17 @@ function App() {
                 class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
               >
                 تحميل الصوت بصيغة MP3
+              </button>
+            </div>
+            <div class="flex justify-center mt-4">
+              <button
+                onClick={() => {
+                  setCurrentSection('');
+                  setAudioUrl('');
+                }}
+                class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
+              >
+                العودة
               </button>
             </div>
           </div>
