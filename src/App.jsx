@@ -7,6 +7,8 @@ function App() {
   const [audioUrl, setAudioUrl] = createSignal('');
   const [voiceOption, setVoiceOption] = createSignal('default');
   const [speed, setSpeed] = createSignal(1);
+  const [isPlaying, setIsPlaying] = createSignal(false);
+  const [showReplayButton, setShowReplayButton] = createSignal(false);
   let audioRef;
 
   const handleTextToSpeech = async () => {
@@ -20,6 +22,7 @@ function App() {
         speed: speed(),
       });
       setAudioUrl(result);
+      setShowReplayButton(false);
     } catch (error) {
       console.error('Error converting text to speech:', error);
     } finally {
@@ -50,6 +53,19 @@ function App() {
       audioRef.play();
     }
   });
+
+  const togglePlayPause = () => {
+    if (isPlaying()) {
+      audioRef.pause();
+    } else {
+      audioRef.play();
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    setShowReplayButton(true);
+  };
 
   return (
     <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
@@ -108,14 +124,33 @@ function App() {
         <Show when={audioUrl()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
-            <audio ref={audioRef} src={audioUrl()} class="w-full" />
+            <audio
+              ref={audioRef}
+              src={audioUrl()}
+              class="w-full"
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={handleAudioEnded}
+            />
             <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
               <button
-                onClick={() => audioRef.play()}
+                onClick={togglePlayPause}
                 class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
               >
-                إعادة الاستماع
+                {isPlaying() ? 'إيقاف الاستماع' : 'تشغيل الاستماع'}
               </button>
+              <Show when={showReplayButton()}>
+                <button
+                  onClick={() => {
+                    audioRef.currentTime = 0;
+                    audioRef.play();
+                    setShowReplayButton(false);
+                  }}
+                  class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                >
+                  إعادة الاستماع
+                </button>
+              </Show>
               <button
                 onClick={handleDownload}
                 class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
