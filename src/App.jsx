@@ -9,16 +9,13 @@ function App() {
   const [correctedText, setCorrectedText] = createSignal('');
   const [diacritizedText, setDiacritizedText] = createSignal('');
   const [audioUrl, setAudioUrl] = createSignal('');
-  const [isPlaying, setIsPlaying] = createSignal(false);
   const [showReplayButton, setShowReplayButton] = createSignal(false);
 
   const [correctedAudioUrl, setCorrectedAudioUrl] = createSignal('');
-  const [isCorrectedAudioPlaying, setIsCorrectedAudioPlaying] = createSignal(false);
   const [showCorrectedReplayButton, setShowCorrectedReplayButton] = createSignal(false);
   const [correctedAudioLoading, setCorrectedAudioLoading] = createSignal(false);
 
   const [diacritizedAudioUrl, setDiacritizedAudioUrl] = createSignal('');
-  const [isDiacritizedAudioPlaying, setIsDiacritizedAudioPlaying] = createSignal(false);
   const [showDiacritizedReplayButton, setShowDiacritizedReplayButton] = createSignal(false);
   const [diacritizedAudioLoading, setDiacritizedAudioLoading] = createSignal(false);
 
@@ -245,42 +242,15 @@ function App() {
     }
   });
 
-  const togglePlayPause = () => {
-    if (isPlaying()) {
-      audioRef.pause();
-    } else {
-      audioRef.play();
-    }
-  };
-
-  const togglePlayPauseCorrected = () => {
-    if (isCorrectedAudioPlaying()) {
-      correctedAudioRef.pause();
-    } else {
-      correctedAudioRef.play();
-    }
-  };
-
-  const togglePlayPauseDiacritized = () => {
-    if (isDiacritizedAudioPlaying()) {
-      diacritizedAudioRef.pause();
-    } else {
-      diacritizedAudioRef.play();
-    }
-  };
-
   const handleAudioEnded = () => {
-    setIsPlaying(false);
     setShowReplayButton(true);
   };
 
   const handleCorrectedAudioEnded = () => {
-    setIsCorrectedAudioPlaying(false);
     setShowCorrectedReplayButton(true);
   };
 
   const handleDiacritizedAudioEnded = () => {
-    setIsDiacritizedAudioPlaying(false);
     setShowDiacritizedReplayButton(true);
   };
 
@@ -365,11 +335,47 @@ function App() {
                 {correctedAudioLoading() ? 'جاري تحويل النص المصحح...' : 'استماع للنص المصحح'}
               </button>
             </div>
+
+            {/* Corrected Audio Section */}
+            <Show when={correctedAudioUrl()}>
+              <div class="mt-4">
+                <audio
+                  ref={correctedAudioRef}
+                  src={correctedAudioUrl()}
+                  class="w-full"
+                  controls
+                  autoplay
+                  onEnded={handleCorrectedAudioEnded}
+                />
+                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={showCorrectedReplayButton()}>
+                    <button
+                      onClick={() => {
+                        correctedAudioRef.currentTime = 0;
+                        correctedAudioRef.play();
+                        setShowCorrectedReplayButton(false);
+                      }}
+                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      إعادة الاستماع
+                    </button>
+                  </Show>
+                  <button
+                    onClick={handleDownloadCorrectedAudio}
+                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    تحميل الصوت بصيغة MP3
+                  </button>
+                </div>
+              </div>
+            </Show>
+
             <div class="flex justify-center mt-4">
               <button
                 onClick={() => {
                   setCurrentSection('');
                   setCorrectedText('');
+                  setCorrectedAudioUrl('');
                 }}
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
               >
@@ -412,11 +418,47 @@ function App() {
                 {diacritizedAudioLoading() ? 'جاري تحويل النص المشكَّل...' : 'استماع للنص المشكَّل'}
               </button>
             </div>
+
+            {/* Diacritized Audio Section */}
+            <Show when={diacritizedAudioUrl()}>
+              <div class="mt-4">
+                <audio
+                  ref={diacritizedAudioRef}
+                  src={diacritizedAudioUrl()}
+                  class="w-full"
+                  controls
+                  autoplay
+                  onEnded={handleDiacritizedAudioEnded}
+                />
+                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={showDiacritizedReplayButton()}>
+                    <button
+                      onClick={() => {
+                        diacritizedAudioRef.currentTime = 0;
+                        diacritizedAudioRef.play();
+                        setShowDiacritizedReplayButton(false);
+                      }}
+                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      إعادة الاستماع
+                    </button>
+                  </Show>
+                  <button
+                    onClick={handleDownloadDiacritizedAudio}
+                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    تحميل الصوت بصيغة MP3
+                  </button>
+                </div>
+              </div>
+            </Show>
+
             <div class="flex justify-center mt-4">
               <button
                 onClick={() => {
                   setCurrentSection('');
                   setDiacritizedText('');
+                  setDiacritizedAudioUrl('');
                 }}
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
               >
@@ -434,19 +476,11 @@ function App() {
               ref={audioRef}
               src={audioUrl()}
               class="w-full"
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
+              controls
+              autoplay
               onEnded={handleAudioEnded}
             />
             <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
-              <Show when={!showReplayButton()}>
-                <button
-                  onClick={togglePlayPause}
-                  class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-                >
-                  {isPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
-                </button>
-              </Show>
               <Show when={showReplayButton()}>
                 <button
                   onClick={() => {
