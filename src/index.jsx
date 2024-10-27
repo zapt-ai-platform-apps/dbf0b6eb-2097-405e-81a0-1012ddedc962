@@ -2,7 +2,7 @@ import { render } from 'solid-js/web';
 import App from './App';
 import './index.css';
 
-// Add PWA support to the app (this will add a service worker and a manifest file, you don't need to do anything else)
+// Add PWA support to the app
 window.progressierAppRuntimeSettings = {
   uid: import.meta.env.VITE_PUBLIC_APP_ID,
   icon512:
