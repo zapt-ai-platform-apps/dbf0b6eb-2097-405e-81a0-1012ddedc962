@@ -10,8 +10,6 @@
   },
   "dependencies": {
     "solid-js": "^1.8.22",
-    "@supabase/auth-ui-shared": "^0.1.8",
-    "@supabase/auth-ui-solid": "^0.3.8",
     "@zapt/zapt-js": "^1.0.5"
   },
   "devDependencies": {
