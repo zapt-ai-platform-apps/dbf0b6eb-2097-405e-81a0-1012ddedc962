@@ -11,9 +11,22 @@ function App() {
   const [audioUrl, setAudioUrl] = createSignal('');
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [showReplayButton, setShowReplayButton] = createSignal(false);
+
+  const [correctedAudioUrl, setCorrectedAudioUrl] = createSignal('');
+  const [isCorrectedAudioPlaying, setIsCorrectedAudioPlaying] = createSignal(false);
+  const [showCorrectedReplayButton, setShowCorrectedReplayButton] = createSignal(false);
+  const [correctedAudioLoading, setCorrectedAudioLoading] = createSignal(false);
+
+  const [diacritizedAudioUrl, setDiacritizedAudioUrl] = createSignal('');
+  const [isDiacritizedAudioPlaying, setIsDiacritizedAudioPlaying] = createSignal(false);
+  const [showDiacritizedReplayButton, setShowDiacritizedReplayButton] = createSignal(false);
+  const [diacritizedAudioLoading, setDiacritizedAudioLoading] = createSignal(false);
+
   const [copyCorrectedSuccess, setCopyCorrectedSuccess] = createSignal(false);
   const [copyDiacritizedSuccess, setCopyDiacritizedSuccess] = createSignal(false);
   let audioRef;
+  let correctedAudioRef;
+  let diacritizedAudioRef;
 
   const handleTextCorrection = async () => {
     if (!inputText()) return;
@@ -66,9 +79,44 @@ function App() {
     }
   };
 
+  const handleTextToSpeechForCorrectedText = async () => {
+    if (!correctedText()) return;
+    setCorrectedAudioLoading(true);
+    try {
+      const result = await createEvent('text_to_speech', {
+        text: correctedText().trim(),
+        format: 'mp3',
+      });
+      setCorrectedAudioUrl(result);
+      setShowCorrectedReplayButton(false);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setCorrectedAudioLoading(false);
+    }
+  };
+
+  const handleTextToSpeechForDiacritizedText = async () => {
+    if (!diacritizedText()) return;
+    setDiacritizedAudioLoading(true);
+    try {
+      const result = await createEvent('text_to_speech', {
+        text: diacritizedText().trim(),
+        format: 'mp3',
+      });
+      setDiacritizedAudioUrl(result);
+      setShowDiacritizedReplayButton(false);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setDiacritizedAudioLoading(false);
+    }
+  };
+
   const handleCopyCorrectedText = () => {
     if (correctedText()) {
-      navigator.clipboard.writeText(correctedText())
+      navigator.clipboard
+        .writeText(correctedText())
         .then(() => {
           setCopyCorrectedSuccess(true);
           setTimeout(() => setCopyCorrectedSuccess(false), 2000);
@@ -94,7 +142,8 @@ function App() {
 
   const handleCopyDiacritizedText = () => {
     if (diacritizedText()) {
-      navigator.clipboard.writeText(diacritizedText())
+      navigator.clipboard
+        .writeText(diacritizedText())
         .then(() => {
           setCopyDiacritizedSuccess(true);
           setTimeout(() => setCopyDiacritizedSuccess(false), 2000);
@@ -136,9 +185,57 @@ function App() {
     }
   };
 
+  const handleDownloadCorrectedAudio = async () => {
+    if (!correctedAudioUrl()) return;
+    try {
+      const response = await fetch(correctedAudioUrl());
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'audio/mpeg' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'corrected_audio.mp3';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading audio:', error);
+    }
+  };
+
+  const handleDownloadDiacritizedAudio = async () => {
+    if (!diacritizedAudioUrl()) return;
+    try {
+      const response = await fetch(diacritizedAudioUrl());
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'audio/mpeg' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'diacritized_audio.mp3';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading audio:', error);
+    }
+  };
+
   createEffect(() => {
     if (audioUrl() && audioRef) {
       audioRef.play();
+    }
+  });
+
+  createEffect(() => {
+    if (correctedAudioUrl() && correctedAudioRef) {
+      correctedAudioRef.play();
+    }
+  });
+
+  createEffect(() => {
+    if (diacritizedAudioUrl() && diacritizedAudioRef) {
+      diacritizedAudioRef.play();
     }
   });
 
@@ -150,13 +247,39 @@ function App() {
     }
   };
 
+  const togglePlayPauseCorrected = () => {
+    if (isCorrectedAudioPlaying()) {
+      correctedAudioRef.pause();
+    } else {
+      correctedAudioRef.play();
+    }
+  };
+
+  const togglePlayPauseDiacritized = () => {
+    if (isDiacritizedAudioPlaying()) {
+      diacritizedAudioRef.pause();
+    } else {
+      diacritizedAudioRef.play();
+    }
+  };
+
   const handleAudioEnded = () => {
     setIsPlaying(false);
     setShowReplayButton(true);
   };
 
+  const handleCorrectedAudioEnded = () => {
+    setIsCorrectedAudioPlaying(false);
+    setShowCorrectedReplayButton(true);
+  };
+
+  const handleDiacritizedAudioEnded = () => {
+    setIsDiacritizedAudioPlaying(false);
+    setShowDiacritizedReplayButton(true);
+  };
+
   return (
-    <div class="h-full bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
+    <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
       <div class="max-w-3xl mx-auto h-full">
         <h1 class="text-4xl font-bold text-purple-600 mb-8 text-center">تحويل النص إلى كلام</h1>
 
@@ -201,6 +324,7 @@ function App() {
           </div>
         </div>
 
+        {/* Corrected Text Section */}
         <Show when={correctedText()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص بعد التصحيح</h3>
@@ -223,10 +347,62 @@ function App() {
               >
                 تحميل النص المصحح بصيغة TXT
               </button>
+              {/* New Listen Button for Corrected Text */}
+              <button
+                onClick={handleTextToSpeechForCorrectedText}
+                class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
+                  correctedAudioLoading() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={correctedAudioLoading()}
+              >
+                {correctedAudioLoading() ? 'جاري تحويل النص المصحح...' : 'استماع للنص المصحح'}
+              </button>
             </div>
+            {/* Audio Player for Corrected Text */}
+            <Show when={correctedAudioUrl()}>
+              <div class="mt-4">
+                <audio
+                  ref={correctedAudioRef}
+                  src={correctedAudioUrl()}
+                  class="w-full"
+                  onPlay={() => setIsCorrectedAudioPlaying(true)}
+                  onPause={() => setIsCorrectedAudioPlaying(false)}
+                  onEnded={handleCorrectedAudioEnded}
+                />
+                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={!showCorrectedReplayButton()}>
+                    <button
+                      onClick={togglePlayPauseCorrected}
+                      class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      {isCorrectedAudioPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
+                    </button>
+                  </Show>
+                  <Show when={showCorrectedReplayButton()}>
+                    <button
+                      onClick={() => {
+                        correctedAudioRef.currentTime = 0;
+                        correctedAudioRef.play();
+                        setShowCorrectedReplayButton(false);
+                      }}
+                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      إعادة الاستماع
+                    </button>
+                  </Show>
+                  <button
+                    onClick={handleDownloadCorrectedAudio}
+                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    تحميل الصوت المصحح بصيغة MP3
+                  </button>
+                </div>
+              </div>
+            </Show>
           </div>
         </Show>
 
+        {/* Diacritized Text Section */}
         <Show when={diacritizedText()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص بعد التشكيل</h3>
@@ -249,10 +425,62 @@ function App() {
               >
                 تحميل النص المشكَّل بصيغة TXT
               </button>
+              {/* New Listen Button for Diacritized Text */}
+              <button
+                onClick={handleTextToSpeechForDiacritizedText}
+                class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer ${
+                  diacritizedAudioLoading() ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={diacritizedAudioLoading()}
+              >
+                {diacritizedAudioLoading() ? 'جاري تحويل النص المشكَّل...' : 'استماع للنص المشكَّل'}
+              </button>
             </div>
+            {/* Audio Player for Diacritized Text */}
+            <Show when={diacritizedAudioUrl()}>
+              <div class="mt-4">
+                <audio
+                  ref={diacritizedAudioRef}
+                  src={diacritizedAudioUrl()}
+                  class="w-full"
+                  onPlay={() => setIsDiacritizedAudioPlaying(true)}
+                  onPause={() => setIsDiacritizedAudioPlaying(false)}
+                  onEnded={handleDiacritizedAudioEnded}
+                />
+                <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={!showDiacritizedReplayButton()}>
+                    <button
+                      onClick={togglePlayPauseDiacritized}
+                      class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      {isDiacritizedAudioPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
+                    </button>
+                  </Show>
+                  <Show when={showDiacritizedReplayButton()}>
+                    <button
+                      onClick={() => {
+                        diacritizedAudioRef.currentTime = 0;
+                        diacritizedAudioRef.play();
+                        setShowDiacritizedReplayButton(false);
+                      }}
+                      class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                    >
+                      إعادة الاستماع
+                    </button>
+                  </Show>
+                  <button
+                    onClick={handleDownloadDiacritizedAudio}
+                    class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    تحميل الصوت المشكَّل بصيغة MP3
+                  </button>
+                </div>
+              </div>
+            </Show>
           </div>
         </Show>
 
+        {/* Original Audio Section */}
         <Show when={audioUrl()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
