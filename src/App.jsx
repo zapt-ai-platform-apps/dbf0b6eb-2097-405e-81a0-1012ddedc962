@@ -343,7 +343,6 @@ function App() {
                   ref={correctedAudioRef}
                   src={correctedAudioUrl()}
                   class="w-full"
-                  controls
                   autoplay
                   onEnded={handleCorrectedAudioEnded}
                 />
@@ -426,7 +425,6 @@ function App() {
                   ref={diacritizedAudioRef}
                   src={diacritizedAudioUrl()}
                   class="w-full"
-                  controls
                   autoplay
                   onEnded={handleDiacritizedAudioEnded}
                 />
@@ -476,7 +474,6 @@ function App() {
               ref={audioRef}
               src={audioUrl()}
               class="w-full"
-              controls
               autoplay
               onEnded={handleAudioEnded}
             />
