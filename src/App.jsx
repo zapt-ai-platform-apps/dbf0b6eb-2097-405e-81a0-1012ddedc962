@@ -19,7 +19,7 @@ function App() {
   });
 
   return (
-    <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
+    <div class="h-full bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
       <div class="max-w-3xl mx-auto h-full">
         <div class="flex justify-between items-center mb-8">
           <h1 class="text-4xl font-bold text-purple-600">تحويل النص إلى كلام</h1>

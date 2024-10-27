@@ -1,4 +1,4 @@
-import { createSignal, Show, onMount } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { createEvent } from '../supabaseClient';
 import AudioPlayer from './AudioPlayer';
 
