@@ -21,6 +21,16 @@ function App() {
     }
   };
 
+  const handleDownload = () => {
+    if (!audioUrl()) return;
+    const link = document.createElement('a');
+    link.href = audioUrl();
+    link.download = 'output.mp3';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
       <div class="max-w-3xl mx-auto">
@@ -48,6 +58,12 @@ function App() {
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
             <audio controls src={audioUrl()} class="w-full" />
+            <button
+              onClick={handleDownload}
+              class="mt-4 w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+            >
+              تحميل الصوت
+            </button>
           </div>
         </Show>
       </div>
