@@ -105,12 +105,14 @@ function App() {
               onEnded={handleAudioEnded}
             />
             <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
-              <button
-                onClick={togglePlayPause}
-                class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
-              >
-                {isPlaying() ? 'إيقاف الاستماع' : 'تشغيل الاستماع'}
-              </button>
+              <Show when={!showReplayButton()}>
+                <button
+                  onClick={togglePlayPause}
+                  class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                >
+                  {isPlaying() ? 'إيقاف الاستماع' : 'إكمال الاستماع'}
+                </button>
+              </Show>
               <Show when={showReplayButton()}>
                 <button
                   onClick={() => {
