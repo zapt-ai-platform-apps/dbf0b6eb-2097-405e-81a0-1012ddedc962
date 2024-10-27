@@ -108,7 +108,7 @@ function App() {
         <Show when={audioUrl()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
-            <audio ref={audioRef} src={audioUrl()} controls class="w-full" />
+            <audio ref={audioRef} src={audioUrl()} class="w-full" />
             <button
               onClick={handleDownload}
               class="mt-4 w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
