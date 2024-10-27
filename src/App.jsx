@@ -9,14 +9,24 @@ function App() {
   const [speed, setSpeed] = createSignal(1);
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [showReplayButton, setShowReplayButton] = createSignal(false);
+  const [correctedText, setCorrectedText] = createSignal('');
+  const [showCorrection, setShowCorrection] = createSignal(false);
   let audioRef;
 
   const handleTextToSpeech = async () => {
     if (!inputText()) return;
     setLoading(true);
     try {
+      // Correct the text first
+      const correctionResult = await createEvent('chatgpt_request', {
+        prompt: `قم بتصحيح النص التالي: "${inputText()}". أعد النص المصحح فقط.`,
+        response_type: 'text',
+      });
+      setCorrectedText(correctionResult.trim());
+      setShowCorrection(true);
+      // Now proceed to convert corrected text to speech
       const result = await createEvent('text_to_speech', {
-        text: inputText(),
+        text: correctedText(),
         format: 'mp3',
         voice: voiceOption(),
         speed: speed(),
@@ -24,7 +34,7 @@ function App() {
       setAudioUrl(result);
       setShowReplayButton(false);
     } catch (error) {
-      console.error('Error converting text to speech:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -120,6 +130,13 @@ function App() {
             {loading() ? 'جاري التحويل...' : 'تحويل النص إلى كلام'}
           </button>
         </div>
+
+        <Show when={showCorrection()}>
+          <div class="mt-8">
+            <h3 class="text-xl font-bold mb-2 text-purple-600">النص المصحح</h3>
+            <p class="bg-white p-4 rounded-lg shadow-md text-right">{correctedText()}</p>
+          </div>
+        </Show>
 
         <Show when={audioUrl()}>
           <div class="mt-8">
