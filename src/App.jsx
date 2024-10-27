@@ -5,10 +5,12 @@ function App() {
   const [loading, setLoading] = createSignal(false);
   const [diacriticsLoading, setDiacriticsLoading] = createSignal(false);
   const [inputText, setInputText] = createSignal('');
+  const [diacritizedText, setDiacritizedText] = createSignal('');
   const [audioUrl, setAudioUrl] = createSignal('');
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [showReplayButton, setShowReplayButton] = createSignal(false);
   const [copySuccess, setCopySuccess] = createSignal(false);
+  const [copyDiacritizedSuccess, setCopyDiacritizedSuccess] = createSignal(false);
   let audioRef;
 
   const handleTextToSpeech = async () => {
@@ -38,11 +40,11 @@ function App() {
     if (!inputText()) return;
     setDiacriticsLoading(true);
     try {
-      const diacritizedText = await createEvent('chatgpt_request', {
+      const result = await createEvent('chatgpt_request', {
         prompt: `قم بتشكيل النص التالي: "${inputText()}". أعد النص المشكَّل فقط.`,
         response_type: 'text',
       });
-      setInputText(diacritizedText.trim());
+      setDiacritizedText(result.trim());
     } catch (error) {
       console.error('Error adding diacritics:', error);
     } finally {
@@ -61,6 +63,32 @@ function App() {
           console.error('Could not copy text:', err);
         });
     }
+  };
+
+  const handleCopyDiacritizedText = () => {
+    if (diacritizedText()) {
+      navigator.clipboard.writeText(diacritizedText())
+        .then(() => {
+          setCopyDiacritizedSuccess(true);
+          setTimeout(() => setCopyDiacritizedSuccess(false), 2000);
+        })
+        .catch((err) => {
+          console.error('Could not copy text:', err);
+        });
+    }
+  };
+
+  const handleDownloadDiacritizedText = () => {
+    if (!diacritizedText()) return;
+    const blob = new Blob([diacritizedText()], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'diacritized_text.txt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   const handleDownload = async () => {
@@ -146,6 +174,32 @@ function App() {
             </button>
           </div>
         </div>
+
+        <Show when={diacritizedText()}>
+          <div class="mt-8">
+            <h3 class="text-xl font-bold mb-2 text-purple-600">النص بعد التشكيل</h3>
+            <div class="bg-gray-100 p-4 rounded-lg text-right">
+              <p>{diacritizedText()}</p>
+            </div>
+            <Show when={copyDiacritizedSuccess()}>
+              <p class="text-green-600 mt-2">تم نسخ النص المشكَّل إلى الحافظة</p>
+            </Show>
+            <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+              <button
+                onClick={handleCopyDiacritizedText}
+                class="w-full px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer"
+              >
+                نسخ النص المشكَّل
+              </button>
+              <button
+                onClick={handleDownloadDiacritizedText}
+                class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer"
+              >
+                تحميل النص المشكَّل بصيغة TXT
+              </button>
+            </div>
+          </div>
+        </Show>
 
         <Show when={audioUrl()}>
           <div class="mt-8">
