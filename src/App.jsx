@@ -4,6 +4,7 @@ import CorrectedSection from './components/CorrectedSection';
 import DiacritizedSection from './components/DiacritizedSection';
 import RephrasedSection from './components/RephrasedSection';
 import AudioSection from './components/AudioSection';
+import HowToUseSection from './components/HowToUseSection';
 
 function App() {
   const [inputText, setInputText] = createSignal('');
@@ -20,7 +21,15 @@ function App() {
   return (
     <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
       <div class="max-w-3xl mx-auto h-full">
-        <h1 class="text-4xl font-bold text-purple-600 mb-8 text-center">تحويل النص إلى كلام</h1>
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-4xl font-bold text-purple-600">تحويل النص إلى كلام</h1>
+          <button
+            onClick={() => setCurrentSection('howToUse')}
+            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+          >
+            كيفية الاستخدام
+          </button>
+        </div>
 
         {currentSection() === '' && (
           <InputSection
@@ -65,6 +74,10 @@ function App() {
             setAudioData={setAudioData}
             setCurrentSection={setCurrentSection}
           />
+        )}
+
+        {currentSection() === 'howToUse' && (
+          <HowToUseSection setCurrentSection={setCurrentSection} />
         )}
       </div>
     </div>
