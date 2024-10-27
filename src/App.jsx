@@ -1,10 +1,11 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, Show, createEffect } from 'solid-js';
 import { createEvent } from './supabaseClient';
 
 function App() {
   const [loading, setLoading] = createSignal(false);
   const [inputText, setInputText] = createSignal('');
   const [audioUrl, setAudioUrl] = createSignal('');
+  let audioRef;
 
   const handleTextToSpeech = async () => {
     if (!inputText()) return;
@@ -42,8 +43,14 @@ function App() {
     }
   };
 
+  createEffect(() => {
+    if (audioUrl() && audioRef) {
+      audioRef.play();
+    }
+  });
+
   return (
-    <div class="min-h-screen bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
+    <div class="h-full bg-gradient-to-br from-purple-100 to-blue-100 p-4 text-gray-800">
       <div class="max-w-3xl mx-auto h-full">
         <h1 class="text-4xl font-bold text-purple-600 mb-8 text-center">تحويل النص إلى كلام</h1>
 
@@ -68,7 +75,7 @@ function App() {
         <Show when={audioUrl()}>
           <div class="mt-8">
             <h3 class="text-xl font-bold mb-2 text-purple-600">النص المحول إلى صوت</h3>
-            <audio controls src={audioUrl()} class="w-full" />
+            <audio ref={audioRef} src={audioUrl()} />
             <button
               onClick={handleDownload}
               class="mt-4 w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
