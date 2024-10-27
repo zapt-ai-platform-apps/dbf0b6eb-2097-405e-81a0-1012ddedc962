@@ -9,7 +9,6 @@ function App() {
   const [audioUrl, setAudioUrl] = createSignal('');
   const [isPlaying, setIsPlaying] = createSignal(false);
   const [showReplayButton, setShowReplayButton] = createSignal(false);
-  const [copySuccess, setCopySuccess] = createSignal(false);
   const [copyDiacritizedSuccess, setCopyDiacritizedSuccess] = createSignal(false);
   let audioRef;
 
@@ -49,19 +48,6 @@ function App() {
       console.error('Error adding diacritics:', error);
     } finally {
       setDiacriticsLoading(false);
-    }
-  };
-
-  const handleCopyText = () => {
-    if (inputText()) {
-      navigator.clipboard.writeText(inputText())
-        .then(() => {
-          setCopySuccess(true);
-          setTimeout(() => setCopySuccess(false), 2000);
-        })
-        .catch((err) => {
-          console.error('Could not copy text:', err);
-        });
     }
   };
 
@@ -141,10 +127,6 @@ function App() {
             class="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent box-border text-right flex-grow"
           ></textarea>
 
-          <Show when={copySuccess()}>
-            <p class="text-green-600 mt-2">تم نسخ النص إلى الحافظة</p>
-          </Show>
-
           <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
             <button
               onClick={handleTextToSpeech}
@@ -164,13 +146,6 @@ function App() {
               disabled={diacriticsLoading()}
             >
               {diacriticsLoading() ? 'جاري التشكيل...' : 'تشكيل النص'}
-            </button>
-
-            <button
-              onClick={handleCopyText}
-              class="w-full px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 cursor-pointer"
-            >
-              نسخ النص
             </button>
           </div>
         </div>
