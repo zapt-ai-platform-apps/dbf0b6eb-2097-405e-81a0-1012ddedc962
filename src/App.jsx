@@ -10,14 +10,20 @@ function App() {
   const [diacritizedText, setDiacritizedText] = createSignal('');
   const [audioUrl, setAudioUrl] = createSignal('');
   const [showReplayButton, setShowReplayButton] = createSignal(false);
+  const [isAudioPlaying, setIsAudioPlaying] = createSignal(true);
+  const [showControlButtons, setShowControlButtons] = createSignal(true);
 
   const [correctedAudioUrl, setCorrectedAudioUrl] = createSignal('');
   const [showCorrectedReplayButton, setShowCorrectedReplayButton] = createSignal(false);
   const [correctedAudioLoading, setCorrectedAudioLoading] = createSignal(false);
+  const [isCorrectedAudioPlaying, setIsCorrectedAudioPlaying] = createSignal(true);
+  const [showCorrectedControlButtons, setShowCorrectedControlButtons] = createSignal(true);
 
   const [diacritizedAudioUrl, setDiacritizedAudioUrl] = createSignal('');
   const [showDiacritizedReplayButton, setShowDiacritizedReplayButton] = createSignal(false);
   const [diacritizedAudioLoading, setDiacritizedAudioLoading] = createSignal(false);
+  const [isDiacritizedAudioPlaying, setIsDiacritizedAudioPlaying] = createSignal(true);
+  const [showDiacritizedControlButtons, setShowDiacritizedControlButtons] = createSignal(true);
 
   const [copyCorrectedSuccess, setCopyCorrectedSuccess] = createSignal(false);
   const [copyDiacritizedSuccess, setCopyDiacritizedSuccess] = createSignal(false);
@@ -75,6 +81,8 @@ function App() {
       setAudioUrl(result);
       setShowReplayButton(false);
       setCurrentSection('audio');
+      setIsAudioPlaying(true);
+      setShowControlButtons(true);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -92,6 +100,8 @@ function App() {
       });
       setCorrectedAudioUrl(result);
       setShowCorrectedReplayButton(false);
+      setIsCorrectedAudioPlaying(true);
+      setShowCorrectedControlButtons(true);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -109,6 +119,8 @@ function App() {
       });
       setDiacritizedAudioUrl(result);
       setShowDiacritizedReplayButton(false);
+      setIsDiacritizedAudioPlaying(true);
+      setShowDiacritizedControlButtons(true);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -244,14 +256,59 @@ function App() {
 
   const handleAudioEnded = () => {
     setShowReplayButton(true);
+    setShowControlButtons(false);
   };
 
   const handleCorrectedAudioEnded = () => {
     setShowCorrectedReplayButton(true);
+    setShowCorrectedControlButtons(false);
   };
 
   const handleDiacritizedAudioEnded = () => {
     setShowDiacritizedReplayButton(true);
+    setShowDiacritizedControlButtons(false);
+  };
+
+  const handlePauseAudio = () => {
+    if (audioRef) {
+      audioRef.pause();
+      setIsAudioPlaying(false);
+    }
+  };
+
+  const handleResumeAudio = () => {
+    if (audioRef) {
+      audioRef.play();
+      setIsAudioPlaying(true);
+    }
+  };
+
+  const handlePauseCorrectedAudio = () => {
+    if (correctedAudioRef) {
+      correctedAudioRef.pause();
+      setIsCorrectedAudioPlaying(false);
+    }
+  };
+
+  const handleResumeCorrectedAudio = () => {
+    if (correctedAudioRef) {
+      correctedAudioRef.play();
+      setIsCorrectedAudioPlaying(true);
+    }
+  };
+
+  const handlePauseDiacritizedAudio = () => {
+    if (diacritizedAudioRef) {
+      diacritizedAudioRef.pause();
+      setIsDiacritizedAudioPlaying(false);
+    }
+  };
+
+  const handleResumeDiacritizedAudio = () => {
+    if (diacritizedAudioRef) {
+      diacritizedAudioRef.play();
+      setIsDiacritizedAudioPlaying(true);
+    }
   };
 
   return (
@@ -347,12 +404,32 @@ function App() {
                   onEnded={handleCorrectedAudioEnded}
                 />
                 <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={showCorrectedControlButtons()}>
+                    <Show when={isCorrectedAudioPlaying()}>
+                      <button
+                        onClick={handlePauseCorrectedAudio}
+                        class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                      >
+                        إيقاف الاستماع
+                      </button>
+                    </Show>
+                    <Show when={!isCorrectedAudioPlaying()}>
+                      <button
+                        onClick={handleResumeCorrectedAudio}
+                        class="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                      >
+                        متابعة الاستماع
+                      </button>
+                    </Show>
+                  </Show>
                   <Show when={showCorrectedReplayButton()}>
                     <button
                       onClick={() => {
                         correctedAudioRef.currentTime = 0;
                         correctedAudioRef.play();
                         setShowCorrectedReplayButton(false);
+                        setShowCorrectedControlButtons(true);
+                        setIsCorrectedAudioPlaying(true);
                       }}
                       class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
                     >
@@ -375,6 +452,8 @@ function App() {
                   setCurrentSection('');
                   setCorrectedText('');
                   setCorrectedAudioUrl('');
+                  setShowCorrectedControlButtons(true);
+                  setIsCorrectedAudioPlaying(true);
                 }}
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
               >
@@ -429,12 +508,32 @@ function App() {
                   onEnded={handleDiacritizedAudioEnded}
                 />
                 <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+                  <Show when={showDiacritizedControlButtons()}>
+                    <Show when={isDiacritizedAudioPlaying()}>
+                      <button
+                        onClick={handlePauseDiacritizedAudio}
+                        class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                      >
+                        إيقاف الاستماع
+                      </button>
+                    </Show>
+                    <Show when={!isDiacritizedAudioPlaying()}>
+                      <button
+                        onClick={handleResumeDiacritizedAudio}
+                        class="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                      >
+                        متابعة الاستماع
+                      </button>
+                    </Show>
+                  </Show>
                   <Show when={showDiacritizedReplayButton()}>
                     <button
                       onClick={() => {
                         diacritizedAudioRef.currentTime = 0;
                         diacritizedAudioRef.play();
                         setShowDiacritizedReplayButton(false);
+                        setShowDiacritizedControlButtons(true);
+                        setIsDiacritizedAudioPlaying(true);
                       }}
                       class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
                     >
@@ -457,6 +556,8 @@ function App() {
                   setCurrentSection('');
                   setDiacritizedText('');
                   setDiacritizedAudioUrl('');
+                  setShowDiacritizedControlButtons(true);
+                  setIsDiacritizedAudioPlaying(true);
                 }}
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
               >
@@ -478,12 +579,32 @@ function App() {
               onEnded={handleAudioEnded}
             />
             <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+              <Show when={showControlButtons()}>
+                <Show when={isAudioPlaying()}>
+                  <button
+                    onClick={handlePauseAudio}
+                    class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    إيقاف الاستماع
+                  </button>
+                </Show>
+                <Show when={!isAudioPlaying()}>
+                  <button
+                    onClick={handleResumeAudio}
+                    class="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
+                  >
+                    متابعة الاستماع
+                  </button>
+                </Show>
+              </Show>
               <Show when={showReplayButton()}>
                 <button
                   onClick={() => {
                     audioRef.currentTime = 0;
                     audioRef.play();
                     setShowReplayButton(false);
+                    setShowControlButtons(true);
+                    setIsAudioPlaying(true);
                   }}
                   class="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-2 md:mt-0"
                 >
@@ -502,6 +623,8 @@ function App() {
                 onClick={() => {
                   setCurrentSection('');
                   setAudioUrl('');
+                  setShowControlButtons(true);
+                  setIsAudioPlaying(true);
                 }}
                 class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer mt-4"
               >
