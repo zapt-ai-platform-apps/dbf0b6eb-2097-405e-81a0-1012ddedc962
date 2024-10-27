@@ -3,6 +3,7 @@ import { createEvent } from './supabaseClient';
 
 function App() {
   const [loading, setLoading] = createSignal(false);
+  const [diacriticsLoading, setDiacriticsLoading] = createSignal(false);
   const [inputText, setInputText] = createSignal('');
   const [audioUrl, setAudioUrl] = createSignal('');
   const [isPlaying, setIsPlaying] = createSignal(false);
@@ -29,6 +30,22 @@ function App() {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddDiacritics = async () => {
+    if (!inputText()) return;
+    setDiacriticsLoading(true);
+    try {
+      const diacritizedText = await createEvent('chatgpt_request', {
+        prompt: `قم بتشكيل النص التالي: "${inputText()}". أعد النص المشكَّل فقط.`,
+        response_type: 'text',
+      });
+      setInputText(diacritizedText.trim());
+    } catch (error) {
+      console.error('Error adding diacritics:', error);
+    } finally {
+      setDiacriticsLoading(false);
     }
   };
 
@@ -82,15 +99,27 @@ function App() {
             class="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent box-border text-right flex-grow"
           ></textarea>
 
-          <button
-            onClick={handleTextToSpeech}
-            class={`mt-4 w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 ${
-              loading() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-            }`}
-            disabled={loading()}
-          >
-            {loading() ? 'جاري التحويل...' : 'تحويل النص إلى كلام'}
-          </button>
+          <div class="flex flex-col md:flex-row md:space-x-4 mt-4">
+            <button
+              onClick={handleTextToSpeech}
+              class={`w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 ${
+                loading() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              }`}
+              disabled={loading()}
+            >
+              {loading() ? 'جاري التحويل...' : 'تحويل النص إلى كلام'}
+            </button>
+
+            <button
+              onClick={handleAddDiacritics}
+              class={`w-full px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 mt-4 ${
+                diacriticsLoading() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              }`}
+              disabled={diacriticsLoading()}
+            >
+              {diacriticsLoading() ? 'جاري التشكيل...' : 'تشكيل النص'}
+            </button>
+          </div>
         </div>
 
         <Show when={audioUrl()}>
